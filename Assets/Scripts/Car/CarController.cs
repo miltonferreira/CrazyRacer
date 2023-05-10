@@ -47,13 +47,31 @@ public class CarController : MonoBehaviour
     public float lapTime;
     public float bestLapTime;
 
+    [Header("AI System ---------------------- ")]
+    public bool isAI;
+    public int currentTarget;
+    private Vector3 targetPoint;
+    public float aiAccelerateSpeed = 1f;
+    public float aiTurnSpeed = .8f;
+    public float aiReachPointRange = 5f;
+    public float aiPointVariance = 3f;
+    public float aiMaxTurn = 15f;
+    private float aiSpeedInput;
+
     // Start is called before the first frame update
     void Start()
     {
         theRB.transform.parent = null;
         dragOnGround = theRB.drag;
 
-        UIManager.instance.LapCounterText.text = currentLap + "/" + RaceManager.instance.totalLaps;
+        if(isAI){   // pega a posição do proximo target
+            targetPoint = RaceManager.instance.allCheckpoints[currentTarget].transform.position;
+            RandomiseAITarget();
+        }
+
+        if(!isAI){
+            UIManager.instance.LapCounterText.text = currentLap + "/" + RaceManager.instance.totalLaps;
+        }
     }
 
     // Update is called once per frame
@@ -62,21 +80,61 @@ public class CarController : MonoBehaviour
 
         lapTime += Time.deltaTime;
 
-        var ts = System.TimeSpan.FromSeconds(lapTime);
-        UIManager.instance.currentLapTimeText.text = string.Format("{0:00}m{1:00}.{2:000}s",ts.Minutes,ts.Seconds,ts.Milliseconds);
+        if(!isAI){
 
-        speedInput = 0f;
-        if(Input.GetAxis("Vertical") > 0){
-            speedInput = Input.GetAxis("Vertical") * forwardAccel;
-        }else if(Input.GetAxis("Vertical") < 0){
-            speedInput = Input.GetAxis("Vertical") * reverseAccel;
+            var ts = System.TimeSpan.FromSeconds(lapTime);
+            UIManager.instance.currentLapTimeText.text = string.Format("{0:00}m{1:00}.{2:000}s",ts.Minutes,ts.Seconds,ts.Milliseconds);
+
+            speedInput = 0f;
+            if(Input.GetAxis("Vertical") > 0){
+                speedInput = Input.GetAxis("Vertical") * forwardAccel;
+            }else if(Input.GetAxis("Vertical") < 0){
+                speedInput = Input.GetAxis("Vertical") * reverseAccel;
+            }
+
+            turnInput = Input.GetAxis("Horizontal");
+            // if(grounded && Input.GetAxis("Horizontal") != 0){
+            //     // Mathf.Sign(speedInput) usando na marcha re invertendo o lado que o carro vai
+            //     transform.rotation = Quaternion.Euler(transform.rotation.eulerAngles + new Vector3(0f, turnInput * turnStrength * Time.deltaTime * Mathf.Sign(speedInput) * (theRB.velocity.magnitude / maxSpeed), 0f));
+            // }
+
+        }else{
+            targetPoint.y = transform.position.y;
+
+            if(Vector3.Distance(transform.position, targetPoint) < aiReachPointRange){
+                currentTarget++;
+                if(currentTarget >= RaceManager.instance.allCheckpoints.Length){
+                    currentTarget = 0;
+                }
+
+                // pega a posição do proximo target
+                targetPoint = RaceManager.instance.allCheckpoints[currentTarget].transform.position;
+                RandomiseAITarget();
+            }
+
+            // rotação do carro na direção do target ------------------------------
+            Vector3 targetDir = targetPoint - transform.position;
+            float angle = Vector3.Angle(targetDir, transform.forward);
+
+            Vector3 localPos = transform.InverseTransformPoint(targetPoint);
+            if(localPos.x < 0f){
+                angle = -angle;
+            }
+
+            turnInput = Mathf.Clamp(angle/aiMaxTurn, -1f, 1f);  // limita rotação do carro
+
+            if(Mathf.Abs(angle) < aiMaxTurn){
+                aiSpeedInput = Mathf.MoveTowards(aiSpeedInput, 1f, aiAccelerateSpeed);
+            }else{
+                aiSpeedInput = Mathf.MoveTowards(aiSpeedInput, aiTurnSpeed, aiAccelerateSpeed);
+            }
+
+
+            // faz as AI acelerar
+            //aiSpeedInput = 1f;
+            speedInput = aiSpeedInput * forwardAccel;
+
         }
-
-        turnInput = Input.GetAxis("Horizontal");
-        // if(grounded && Input.GetAxis("Horizontal") != 0){
-        //     // Mathf.Sign(speedInput) usando na marcha re invertendo o lado que o carro vai
-        //     transform.rotation = Quaternion.Euler(transform.rotation.eulerAngles + new Vector3(0f, turnInput * turnStrength * Time.deltaTime * Mathf.Sign(speedInput) * (theRB.velocity.magnitude / maxSpeed), 0f));
-        // }
 
         // turning the wheels
         leftFrontWheel.localRotation = Quaternion.Euler(leftFrontWheel.localRotation.eulerAngles.x, (turnInput * maxWheelTurn) - 180, leftFrontWheel.localRotation.eulerAngles.z);
@@ -186,9 +244,17 @@ public class CarController : MonoBehaviour
 
         lapTime = 0f;
 
-        var ts = System.TimeSpan.FromSeconds(bestLapTime);
-        UIManager.instance.bestLapTimeText.text = string.Format("{0:00}m{1:00}.{2:000}s",ts.Minutes,ts.Seconds,ts.Milliseconds);
+        if(!isAI){
 
-        UIManager.instance.LapCounterText.text = currentLap + "/" + RaceManager.instance.totalLaps;
+            var ts = System.TimeSpan.FromSeconds(bestLapTime);
+            UIManager.instance.bestLapTimeText.text = string.Format("{0:00}m{1:00}.{2:000}s",ts.Minutes,ts.Seconds,ts.Milliseconds);
+
+            UIManager.instance.LapCounterText.text = currentLap + "/" + RaceManager.instance.totalLaps;
+        }
+    }
+
+    public void RandomiseAITarget(){
+        // adiciona valores xyz para evitar que todos os carros vá na mesma posição do target
+        targetPoint += new Vector3(Random.Range(-aiPointVariance, aiPointVariance), 0f, Random.Range(-aiPointVariance, aiPointVariance));
     }
 }
