@@ -56,7 +56,7 @@ public class CarController : MonoBehaviour
     public float aiReachPointRange = 5f;
     public float aiPointVariance = 3f;
     public float aiMaxTurn = 15f;
-    private float aiSpeedInput;
+    private float aiSpeedInput, aiSpeedMod;
 
     // Start is called before the first frame update
     void Start()
@@ -67,6 +67,8 @@ public class CarController : MonoBehaviour
         if(isAI){   // pega a posição do proximo target
             targetPoint = RaceManager.instance.allCheckpoints[currentTarget].transform.position;
             RandomiseAITarget();
+
+            aiSpeedMod = Random.Range(.8f, 1.1f);   // adiciona velocidades diferentes ao carros
         }
 
         if(!isAI){
@@ -102,14 +104,7 @@ public class CarController : MonoBehaviour
             targetPoint.y = transform.position.y;
 
             if(Vector3.Distance(transform.position, targetPoint) < aiReachPointRange){
-                currentTarget++;
-                if(currentTarget >= RaceManager.instance.allCheckpoints.Length){
-                    currentTarget = 0;
-                }
-
-                // pega a posição do proximo target
-                targetPoint = RaceManager.instance.allCheckpoints[currentTarget].transform.position;
-                RandomiseAITarget();
+                SetNextAITarget();  // indica o proximo target da AI
             }
 
             // rotação do carro na direção do target ------------------------------
@@ -132,7 +127,7 @@ public class CarController : MonoBehaviour
 
             // faz as AI acelerar
             //aiSpeedInput = 1f;
-            speedInput = aiSpeedInput * forwardAccel;
+            speedInput = aiSpeedInput * forwardAccel * aiSpeedMod;
 
         }
 
@@ -215,7 +210,8 @@ public class CarController : MonoBehaviour
 
         // movimenta para os lados o carro ----------------------
         transform.position = theRB.position;
-        if(grounded && Input.GetAxis("Horizontal") != 0){
+        //if(grounded && Input.GetAxis("Horizontal") != 0){
+        if(grounded && speedInput != 0){
             // Mathf.Sign(speedInput) usando na marcha re invertendo o lado que o carro vai
             transform.rotation = Quaternion.Euler(transform.rotation.eulerAngles + new Vector3(0f, turnInput * turnStrength * Time.deltaTime * Mathf.Sign(speedInput) * (theRB.velocity.magnitude / maxSpeed), 0f));
         }
@@ -233,6 +229,23 @@ public class CarController : MonoBehaviour
                 LapCompleted(); // adiciona 1 volta
             }
         }
+
+        if(isAI){
+            if(cpNumber == currentTarget){
+                SetNextAITarget();
+            }
+        }
+    }
+
+    public void SetNextAITarget(){
+        currentTarget++;
+        if(currentTarget >= RaceManager.instance.allCheckpoints.Length){
+            currentTarget = 0;
+        }
+
+        // pega a posição do proximo target
+        targetPoint = RaceManager.instance.allCheckpoints[currentTarget].transform.position;
+        RandomiseAITarget();
     }
 
     public void LapCompleted(){
