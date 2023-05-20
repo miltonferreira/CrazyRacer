@@ -10,6 +10,13 @@ public class UIManager : MonoBehaviour
 
     public TMP_Text LapCounterText, bestLapTimeText, currentLapTimeText;
 
+    [Header("Ref UI Position")]
+    public TMP_Text positionText;
+
+    [Header("Ref UI Largada")]
+    public TMP_Text countdownText;
+    public TMP_Text goText;
+
     // Start is called before the first frame update
     void Start()
     {

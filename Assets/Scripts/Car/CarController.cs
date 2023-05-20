@@ -39,7 +39,7 @@ public class CarController : MonoBehaviour
     public float skidFadeSpeed = 2;
 
     // checkpoint na pista -----------------------------------------
-    private int nextCheckpoint;
+    [HideInInspector]public int nextCheckpoint;
     [Header("Volta Atual ------------------- ")]
     public int currentLap;
     
@@ -80,90 +80,93 @@ public class CarController : MonoBehaviour
     void Update()
     {
 
-        lapTime += Time.deltaTime;
+        if(!RaceManager.instance.isStarting){
 
-        if(!isAI){
+            lapTime += Time.deltaTime;
 
-            var ts = System.TimeSpan.FromSeconds(lapTime);
-            UIManager.instance.currentLapTimeText.text = string.Format("{0:00}m{1:00}.{2:000}s",ts.Minutes,ts.Seconds,ts.Milliseconds);
+            if(!isAI){
 
-            speedInput = 0f;
-            if(Input.GetAxis("Vertical") > 0){
-                speedInput = Input.GetAxis("Vertical") * forwardAccel;
-            }else if(Input.GetAxis("Vertical") < 0){
-                speedInput = Input.GetAxis("Vertical") * reverseAccel;
-            }
+                var ts = System.TimeSpan.FromSeconds(lapTime);
+                UIManager.instance.currentLapTimeText.text = string.Format("{0:00}m{1:00}.{2:000}s",ts.Minutes,ts.Seconds,ts.Milliseconds);
 
-            turnInput = Input.GetAxis("Horizontal");
-            // if(grounded && Input.GetAxis("Horizontal") != 0){
-            //     // Mathf.Sign(speedInput) usando na marcha re invertendo o lado que o carro vai
-            //     transform.rotation = Quaternion.Euler(transform.rotation.eulerAngles + new Vector3(0f, turnInput * turnStrength * Time.deltaTime * Mathf.Sign(speedInput) * (theRB.velocity.magnitude / maxSpeed), 0f));
-            // }
+                speedInput = 0f;
+                if(Input.GetAxis("Vertical") > 0){
+                    speedInput = Input.GetAxis("Vertical") * forwardAccel;
+                }else if(Input.GetAxis("Vertical") < 0){
+                    speedInput = Input.GetAxis("Vertical") * reverseAccel;
+                }
 
-        }else{
-            targetPoint.y = transform.position.y;
+                turnInput = Input.GetAxis("Horizontal");
+                // if(grounded && Input.GetAxis("Horizontal") != 0){
+                //     // Mathf.Sign(speedInput) usando na marcha re invertendo o lado que o carro vai
+                //     transform.rotation = Quaternion.Euler(transform.rotation.eulerAngles + new Vector3(0f, turnInput * turnStrength * Time.deltaTime * Mathf.Sign(speedInput) * (theRB.velocity.magnitude / maxSpeed), 0f));
+                // }
 
-            if(Vector3.Distance(transform.position, targetPoint) < aiReachPointRange){
-                SetNextAITarget();  // indica o proximo target da AI
-            }
-
-            // rotação do carro na direção do target ------------------------------
-            Vector3 targetDir = targetPoint - transform.position;
-            float angle = Vector3.Angle(targetDir, transform.forward);
-
-            Vector3 localPos = transform.InverseTransformPoint(targetPoint);
-            if(localPos.x < 0f){
-                angle = -angle;
-            }
-
-            turnInput = Mathf.Clamp(angle/aiMaxTurn, -1f, 1f);  // limita rotação do carro
-
-            if(Mathf.Abs(angle) < aiMaxTurn){
-                aiSpeedInput = Mathf.MoveTowards(aiSpeedInput, 1f, aiAccelerateSpeed);
             }else{
-                aiSpeedInput = Mathf.MoveTowards(aiSpeedInput, aiTurnSpeed, aiAccelerateSpeed);
+                targetPoint.y = transform.position.y;
+
+                if(Vector3.Distance(transform.position, targetPoint) < aiReachPointRange){
+                    SetNextAITarget();  // indica o proximo target da AI
+                }
+
+                // rotação do carro na direção do target ------------------------------
+                Vector3 targetDir = targetPoint - transform.position;
+                float angle = Vector3.Angle(targetDir, transform.forward);
+
+                Vector3 localPos = transform.InverseTransformPoint(targetPoint);
+                if(localPos.x < 0f){
+                    angle = -angle;
+                }
+
+                turnInput = Mathf.Clamp(angle/aiMaxTurn, -1f, 1f);  // limita rotação do carro
+
+                if(Mathf.Abs(angle) < aiMaxTurn){
+                    aiSpeedInput = Mathf.MoveTowards(aiSpeedInput, 1f, aiAccelerateSpeed);
+                }else{
+                    aiSpeedInput = Mathf.MoveTowards(aiSpeedInput, aiTurnSpeed, aiAccelerateSpeed);
+                }
+
+
+                // faz as AI acelerar
+                //aiSpeedInput = 1f;
+                speedInput = aiSpeedInput * forwardAccel * aiSpeedMod;
+
             }
 
+            // turning the wheels
+            leftFrontWheel.localRotation = Quaternion.Euler(leftFrontWheel.localRotation.eulerAngles.x, (turnInput * maxWheelTurn) - 180, leftFrontWheel.localRotation.eulerAngles.z);
+            rightFrontWheel.localRotation = Quaternion.Euler(rightFrontWheel.localRotation.eulerAngles.x, (turnInput * maxWheelTurn), rightFrontWheel.localRotation.eulerAngles.z);
 
-            // faz as AI acelerar
-            //aiSpeedInput = 1f;
-            speedInput = aiSpeedInput * forwardAccel * aiSpeedMod;
+            //transform.position = theRB.position;
 
-        }
+            // control particle emissions
+            emissionRate = Mathf.MoveTowards(emissionRate, 0f, emissionFadeSpeed * Time.deltaTime);
 
-        // turning the wheels
-        leftFrontWheel.localRotation = Quaternion.Euler(leftFrontWheel.localRotation.eulerAngles.x, (turnInput * maxWheelTurn) - 180, leftFrontWheel.localRotation.eulerAngles.z);
-        rightFrontWheel.localRotation = Quaternion.Euler(rightFrontWheel.localRotation.eulerAngles.x, (turnInput * maxWheelTurn), rightFrontWheel.localRotation.eulerAngles.z);
+            // se tiver no chao e movendo, cria mais particulas
+            if(grounded && (Mathf.Abs(turnInput) > .5f || (theRB.velocity.magnitude < maxSpeed * .5f && theRB.velocity.magnitude != 0))){
+                emissionRate = maxEmission;
+            }
+            
+            // não deixa fazer particulas se tiver parado
+            if(theRB.velocity.magnitude <= 0.5f){
+                emissionRate = 0;
+            }
 
-        //transform.position = theRB.position;
+            for(int i = 0; i < dustTrail.Length; i++){
+                var emissionModule = dustTrail[i].emission;
+                emissionModule.rateOverTime = emissionRate;
+            }
 
-        // control particle emissions
-        emissionRate = Mathf.MoveTowards(emissionRate, 0f, emissionFadeSpeed * Time.deltaTime);
+            if(engineSound != null){
+                engineSound.pitch = 1f + (theRB.velocity.magnitude /maxSpeed) * 2f;
+            }
 
-        // se tiver no chao e movendo, cria mais particulas
-        if(grounded && (Mathf.Abs(turnInput) > .5f || (theRB.velocity.magnitude < maxSpeed * .5f && theRB.velocity.magnitude != 0))){
-            emissionRate = maxEmission;
-        }
-        
-        // não deixa fazer particulas se tiver parado
-        if(theRB.velocity.magnitude <= 0.5f){
-            emissionRate = 0;
-        }
-
-        for(int i = 0; i < dustTrail.Length; i++){
-            var emissionModule = dustTrail[i].emission;
-            emissionModule.rateOverTime = emissionRate;
-        }
-
-        if(engineSound != null){
-            engineSound.pitch = 1f + (theRB.velocity.magnitude /maxSpeed) * 2f;
-        }
-
-        if(skidSound != null){
-            if(Mathf.Abs(turnInput) > 0.5f){
-                skidSound.volume = 1f;
-            }else{
-                skidSound.volume = Mathf.MoveTowards(skidSound.volume, 0f, skidFadeSpeed * Time.deltaTime);
+            if(skidSound != null){
+                if(Mathf.Abs(turnInput) > 0.5f){
+                    skidSound.volume = 1f;
+                }else{
+                    skidSound.volume = Mathf.MoveTowards(skidSound.volume, 0f, skidFadeSpeed * Time.deltaTime);
+                }
             }
         }
     }
