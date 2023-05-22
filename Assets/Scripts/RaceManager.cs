@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class RaceManager : MonoBehaviour
 {
@@ -20,18 +21,31 @@ public class RaceManager : MonoBehaviour
     public float timeBetweenPosCheck = .2f;
     private float posChkCounter;
 
-    [Header("Velocidade dos carros")]
+    [Header("Velocidade dos carros  --------------- ")]
     public float aiDefaultSpeed = 30f;
     public float playerDefaultSpeed = 30f;
-    [Header("Borracha dos carros")]
+    [Header("Borracha dos carros  --------------- ")]
     public float rubberBandSpeedMod = 3.5f;
     public float rubBandAccel = .5f;
 
-    [Header("Controle de largada")]
+    [Header("Controle de largada  --------------- ")]
     public bool isStarting;
     public float timeBetweenStartCount = 1f;
     private float startCounter;
     public int countdownCurrent = 3;
+
+    [Header("Posicoes Grid  --------------- ")]
+    public Transform[] startPoints;
+    public int playerStartPosition;
+    public int aiNumberToSpawn;
+
+    [Header("Posicoes AI Grid  --------------- ")]
+    public List<CarController> carsToSpawn = new List<CarController>();
+
+    public bool raceCompleted;
+
+    [Header("Nome da cena")]
+    public string raceCompletedScene;
 
     private void Awake() {
         if(instance == null){
@@ -50,6 +64,28 @@ public class RaceManager : MonoBehaviour
         startCounter = timeBetweenStartCount;   // tempo inicial de contagem regressiva
 
         UIManager.instance.countdownText.text = countdownCurrent+"!";
+
+        playerStartPosition = Random.Range(0, aiNumberToSpawn + 1);
+
+        playerCar.transform.position = startPoints[playerStartPosition].position;
+        playerCar.theRB.transform.position = startPoints[playerStartPosition].position;
+
+        // colocar aiCars no grid
+        for(int i = 0; i < aiNumberToSpawn+1; i++){
+            if(i != playerStartPosition){
+
+                int selectedCar = Random.Range(0, carsToSpawn.Count);   // escolhe um carro para respawna
+
+                allAICars.Add(Instantiate(carsToSpawn[selectedCar], startPoints[i].position, startPoints[i].rotation));
+
+                if(carsToSpawn.Count > aiNumberToSpawn - i){
+                    carsToSpawn.RemoveAt(selectedCar);  // tirar da lista carros da lista de respawn
+                }
+
+
+            }
+        }
+
     }
 
     // Update is called once per frame
@@ -120,7 +156,32 @@ public class RaceManager : MonoBehaviour
                     playerDefaultSpeed + (rubberBandSpeedMod * ((float)playerPosition / ((float)allAICars.Count+1))), rubBandAccel * Time.deltaTime);            
             }
         }
+    }
 
+    public void FinishRace(){
+        raceCompleted = true;
+
+        switch(playerPosition){
+            case 1:
+                UIManager.instance.raceResultText.text = "You Finished 1st";        
+                break;
+            case 2:
+                UIManager.instance.raceResultText.text = "You Finished 2nd";        
+                break;
+            case 3:
+                UIManager.instance.raceResultText.text = "You Finished 3rd";        
+                break;
+            default:
+                UIManager.instance.raceResultText.text = "You Finished "+ playerPosition + "th";
+                break;
+        }
+
+        UIManager.instance.resultScreen.SetActive(true);
 
     }
+
+    public void ExitRace(){
+        SceneManager.LoadScene(raceCompletedScene);
+    }
+
 }

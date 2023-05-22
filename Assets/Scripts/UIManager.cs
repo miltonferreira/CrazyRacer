@@ -17,8 +17,12 @@ public class UIManager : MonoBehaviour
     public TMP_Text countdownText;
     public TMP_Text goText;
 
+    [Header("Ref UI Resultado Corrida")]
+    public TMP_Text raceResultText;
+    public GameObject resultScreen;
+
     // Start is called before the first frame update
-    void Start()
+    void Awake()
     {
         if(instance == null){
             instance = this;
@@ -29,5 +33,9 @@ public class UIManager : MonoBehaviour
     void Update()
     {
         
+    }
+
+    public void ExitRace(){
+        RaceManager.instance.ExitRace();
     }
 }

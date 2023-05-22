@@ -14735,7 +14735,7 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 8589342459463280621}
-  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0.5, z: -28}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
@@ -14789,7 +14789,18 @@ MonoBehaviour:
   engineSound: {fileID: 8589342459642078200}
   skidSound: {fileID: 8589342459731372441}
   skidFadeSpeed: 2
-  currentLap: 0
+  nextCheckpoint: 0
+  currentLap: 2
+  lapTime: 0
+  bestLapTime: 0
+  isAI: 0
+  currentTarget: 0
+  aiAccelerateSpeed: 1
+  aiTurnSpeed: 0.8
+  aiReachPointRange: 5
+  aiPointVariance: 3
+  aiMaxTurn: 15
+  resetCooldown: 2
 --- !u!81 &8589342459463280610
 AudioListener:
   m_ObjectHideFlags: 0

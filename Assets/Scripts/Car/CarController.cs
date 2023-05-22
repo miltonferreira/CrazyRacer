@@ -58,6 +58,10 @@ public class CarController : MonoBehaviour
     public float aiMaxTurn = 15f;
     private float aiSpeedInput, aiSpeedMod;
 
+    [Header("Limita tempo para respawnar")]
+    public float resetCooldown = 2f;
+    private float resetCounter;
+
     // Start is called before the first frame update
     void Start()
     {
@@ -74,6 +78,8 @@ public class CarController : MonoBehaviour
         if(!isAI){
             UIManager.instance.LapCounterText.text = currentLap + "/" + RaceManager.instance.totalLaps;
         }
+
+        resetCounter = resetCooldown;   // adiciona tempo de cooldown para não respawnar
     }
 
     // Update is called once per frame
@@ -101,6 +107,15 @@ public class CarController : MonoBehaviour
                 //     // Mathf.Sign(speedInput) usando na marcha re invertendo o lado que o carro vai
                 //     transform.rotation = Quaternion.Euler(transform.rotation.eulerAngles + new Vector3(0f, turnInput * turnStrength * Time.deltaTime * Mathf.Sign(speedInput) * (theRB.velocity.magnitude / maxSpeed), 0f));
                 // }
+
+                if(resetCounter > 0){
+                    resetCounter -= Time.deltaTime;
+                }
+
+                if(Input.GetKeyDown(KeyCode.R) && resetCounter <= 0){
+                    ResetToTrack();     // coloca o carro no ultimo checkpoint que passou
+                }
+
 
             }else{
                 targetPoint.y = transform.position.y;
@@ -241,7 +256,9 @@ public class CarController : MonoBehaviour
     }
 
     public void SetNextAITarget(){
+
         currentTarget++;
+
         if(currentTarget >= RaceManager.instance.allCheckpoints.Length){
             currentTarget = 0;
         }
@@ -258,19 +275,56 @@ public class CarController : MonoBehaviour
             bestLapTime = lapTime;
         }
 
-        lapTime = 0f;
+        if(currentLap <= RaceManager.instance.totalLaps){
 
-        if(!isAI){
+            lapTime = 0f;
 
-            var ts = System.TimeSpan.FromSeconds(bestLapTime);
-            UIManager.instance.bestLapTimeText.text = string.Format("{0:00}m{1:00}.{2:000}s",ts.Minutes,ts.Seconds,ts.Milliseconds);
+            if(!isAI){
 
-            UIManager.instance.LapCounterText.text = currentLap + "/" + RaceManager.instance.totalLaps;
+                var ts = System.TimeSpan.FromSeconds(bestLapTime);
+                UIManager.instance.bestLapTimeText.text = string.Format("{0:00}m{1:00}.{2:000}s",ts.Minutes,ts.Seconds,ts.Milliseconds);
+
+                UIManager.instance.LapCounterText.text = currentLap + "/" + RaceManager.instance.totalLaps;
+            }
+        }else{
+            if(!isAI){
+                
+                isAI = true;
+                aiSpeedMod = 1f;
+
+                // pega a posição do proximo target
+                targetPoint = RaceManager.instance.allCheckpoints[currentTarget].transform.position;
+                RandomiseAITarget();
+
+                var ts = System.TimeSpan.FromSeconds(bestLapTime);
+                UIManager.instance.bestLapTimeText.text = string.Format("{0:00}m{1:00}.{2:000}s",ts.Minutes,ts.Seconds,ts.Milliseconds);
+
+                RaceManager.instance.FinishRace();
+
+            }
         }
+
     }
 
     public void RandomiseAITarget(){
         // adiciona valores xyz para evitar que todos os carros vá na mesma posição do target
         targetPoint += new Vector3(Random.Range(-aiPointVariance, aiPointVariance), 0f, Random.Range(-aiPointVariance, aiPointVariance));
     }
+
+    void ResetToTrack(){    // coloca o carro no ultimo checkpoint que passou
+        int pointTogoTo = nextCheckpoint - 1;
+        if(pointTogoTo < 0){
+            pointTogoTo = RaceManager.instance.allCheckpoints.Length - 1;
+        }
+
+        transform.position = RaceManager.instance.allCheckpoints[pointTogoTo].transform.position;
+        theRB.transform.position = transform.position;
+        theRB.velocity = Vector3.zero;
+
+        speedInput = 0f;
+        turnInput = 0f;
+
+        resetCounter = resetCooldown;   // adiciona tempo de cooldown para não respawnar
+    }
+
 }
