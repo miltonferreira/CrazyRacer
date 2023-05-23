@@ -69,11 +69,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8589342459463280620, guid: c535456df10b80940a2c8cc6fa901b98, type: 3}
       propertyPath: currentLap
-      value: 2
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 8589342459463280621, guid: c535456df10b80940a2c8cc6fa901b98, type: 3}
       propertyPath: m_Name
-      value: Sedan Sport Green
+      value: Sedan Sport Green Variant
       objectReference: {fileID: 0}
     - target: {fileID: 8589342459463280621, guid: c535456df10b80940a2c8cc6fa901b98, type: 3}
       propertyPath: m_IsActive

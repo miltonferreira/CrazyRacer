@@ -14790,7 +14790,7 @@ MonoBehaviour:
   skidSound: {fileID: 8589342459731372441}
   skidFadeSpeed: 2
   nextCheckpoint: 0
-  currentLap: 2
+  currentLap: 1
   lapTime: 0
   bestLapTime: 0
   isAI: 0
@@ -14808,7 +14808,7 @@ AudioListener:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 8589342459463280621}
-  m_Enabled: 1
+  m_Enabled: 0
 --- !u!1 &8589342459478433495
 GameObject:
   m_ObjectHideFlags: 0

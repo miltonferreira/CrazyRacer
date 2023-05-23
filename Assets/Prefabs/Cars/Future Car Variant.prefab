@@ -56,6 +56,10 @@ PrefabInstance:
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 8589342459463280620, guid: c535456df10b80940a2c8cc6fa901b98, type: 3}
+      propertyPath: currentLap
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 8589342459463280620, guid: c535456df10b80940a2c8cc6fa901b98, type: 3}
       propertyPath: leftFrontWheel
       value: 
       objectReference: {fileID: 3947349207718601974}
@@ -65,7 +69,7 @@ PrefabInstance:
       objectReference: {fileID: 4571548299235095880}
     - target: {fileID: 8589342459463280621, guid: c535456df10b80940a2c8cc6fa901b98, type: 3}
       propertyPath: m_Name
-      value: Future Car
+      value: Future Car Variant
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: c535456df10b80940a2c8cc6fa901b98, type: 3}

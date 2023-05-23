@@ -21,6 +21,11 @@ public class UIManager : MonoBehaviour
     public TMP_Text raceResultText;
     public GameObject resultScreen;
 
+    [Header("Pause Game")]
+    public GameObject pauseScreen;
+    public bool isPaused;
+
+
     // Start is called before the first frame update
     void Awake()
     {
@@ -32,10 +37,28 @@ public class UIManager : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        
+        if(Input.GetKeyDown(KeyCode.Escape)){
+            PauseUnpause();
+        }
+    }
+
+    public void PauseUnpause(){
+        isPaused = !isPaused;
+        pauseScreen.SetActive(isPaused);
+
+        if(isPaused){
+            Time.timeScale = 0f;
+        }else{
+            Time.timeScale = 1f;
+        }
     }
 
     public void ExitRace(){
+        Time.timeScale = 1f;
         RaceManager.instance.ExitRace();
+    }
+
+    public void QuitGame(){
+        Application.Quit();
     }
 }
