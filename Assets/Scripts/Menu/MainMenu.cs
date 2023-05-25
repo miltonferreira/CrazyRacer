@@ -33,12 +33,20 @@ public class MainMenu : MonoBehaviour
 
             OpenRaceSetup();
         }
+
+        PlayerPrefs.SetInt(RaceInfoManager.instance.trackToLoad+"_unlocked", 1);
     }
 
     // Update is called once per frame
     void Update()
     {
-        
+        #if UNITY_EDITOR
+        if(Input.GetKeyDown(KeyCode.P)){
+            PlayerPrefs.DeleteAll();
+            print("Keys deleted");
+            //PlayerPrefs.SetInt(RaceInfoManager.instance.trackToLoad+"_unlocked", 1);
+        }
+        #endif
     }
 
     public void StartGame(){

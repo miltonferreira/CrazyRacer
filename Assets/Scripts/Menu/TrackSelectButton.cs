@@ -12,10 +12,21 @@ public class TrackSelectButton : MonoBehaviour
 
     public int raceLaps = 4;
 
+    [Header("Locked System --------")]
+    public GameObject unlockedText;
+    private bool isLocked;
+    public string trackToUnlockOnWin;
+
+
     // Start is called before the first frame update
     void Start()
     {
-        
+        if(!PlayerPrefs.HasKey(trackSceneName+"_unlocked")){
+            isLocked = true;
+
+            trackImage.color = Color.gray;
+            unlockedText.SetActive(true);
+        }
     }
 
     // Update is called once per frame
@@ -25,12 +36,18 @@ public class TrackSelectButton : MonoBehaviour
     }
 
     public void SelectTrack(){
-        RaceInfoManager.instance.trackToLoad = trackSceneName;
-        RaceInfoManager.instance.noOfLaps = raceLaps;
-        RaceInfoManager.instance.trackSprite = trackImage.sprite;
 
-        MainMenu.instance.trackSelectImage.sprite = trackImage.sprite;
+        if(!isLocked){
+            RaceInfoManager.instance.trackToLoad = trackSceneName;
+            RaceInfoManager.instance.noOfLaps = raceLaps;
+            RaceInfoManager.instance.trackSprite = trackImage.sprite;
 
-        MainMenu.instance.CloseTrackSelect();
+            MainMenu.instance.trackSelectImage.sprite = trackImage.sprite;
+
+            MainMenu.instance.CloseTrackSelect();
+
+            RaceInfoManager.instance.trackToUnlock = trackToUnlockOnWin;
+        }
+        
     }
 }

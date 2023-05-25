@@ -178,7 +178,15 @@ public class RaceManager : MonoBehaviour
 
         switch(playerPosition){
             case 1:
-                UIManager.instance.raceResultText.text = "You Finished 1st";        
+                UIManager.instance.raceResultText.text = "You Finished 1st";
+
+                if(RaceInfoManager.instance.trackToUnlock != ""){
+                    if(!PlayerPrefs.HasKey(RaceInfoManager.instance.trackToUnlock+"_unlocked")){
+                        PlayerPrefs.SetInt(RaceInfoManager.instance.trackToUnlock+"_unlocked", 1);
+                        UIManager.instance.trackUnlockedMessage.SetActive(true);
+                    }
+                }
+
                 break;
             case 2:
                 UIManager.instance.raceResultText.text = "You Finished 2nd";        

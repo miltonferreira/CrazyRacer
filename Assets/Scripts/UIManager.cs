@@ -20,6 +20,7 @@ public class UIManager : MonoBehaviour
     [Header("Ref UI Resultado Corrida")]
     public TMP_Text raceResultText;
     public GameObject resultScreen;
+    public GameObject trackUnlockedMessage;
 
     [Header("Pause Game")]
     public GameObject pauseScreen;
