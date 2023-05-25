@@ -10,6 +10,10 @@ public class RaceInfoManager : MonoBehaviour
     public CarController racerToUse;
     public int noOfAI;  // numero de carros AI na corrida
     public int noOfLaps;
+    public bool enteredRace;
+    [Header("Sprites Track e Car escolhidos ----------")]
+    public Sprite trackSprite;
+    public Sprite racerSprite;
 
     private void Awake() {
         if(instance == null){
@@ -20,15 +24,5 @@ public class RaceInfoManager : MonoBehaviour
         }
     }
 
-    // Start is called before the first frame update
-    void Start()
-    {
-        
-    }
-
-    // Update is called once per frame
-    void Update()
-    {
-        
-    }
+    
 }
